@@ -6,6 +6,7 @@
 : y-start 12
 : playerCo 0 0
 : playerPos 6 12
+: playerDir 0
 : playerFrame 0
 
 :const leftSide 0
@@ -23,11 +24,12 @@
 	plane 2
   i := playerCo
   load v1
-	i := map
+	i := long map
   v2 := 0
 	v3 := mapHeight
 	loop while v2 < v0
 		i += v3
+		v2 += tileSize
 	again
 	i += v1
 	v2 := 32
@@ -183,7 +185,7 @@
 	end
 	
 	if v4 == rightSide begin
-	plane 1
+		plane 1
 		clear
 		plane 2
 		i := player
@@ -210,7 +212,7 @@
 				if vf != 0 then
 		 	again
 		
-		if v5 != 0 then again
+		if v4 != 0 then again
 		
 		i := playerPos
 		load v4 - v5
