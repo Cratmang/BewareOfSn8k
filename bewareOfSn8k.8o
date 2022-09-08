@@ -1,14 +1,6 @@
-: thang
-0xFC 0x1E 0x1A 0x19 0x0F 0x09 0x0F 0x1A 0x7E 0xD4 0xD8 0xB0 0x90 0x78 0x3F
-
-: slug
-0x24 0x18 0x18 0x10 0x10 0x20 #up
-0x24 0x18 0x18 0x10 0x60 0x00 #right
-0x24 0x18 0x18 0x50 0x20 0x00 #down
-0x24 0x18 0x18 0x08 0x06 0x00 #left
-
-: slug-bounds
-0x3c 0x3c 0x3c 0x3c 0x3c 
+# BEWARE OF SN8K!
+# Game by Cratmang
+#
 
 : x-start 6
 : y-start 12
@@ -24,13 +16,11 @@
 :const mapWidthPixels 128
 :const tileSize 8
 :calc mapWidth { mapWidthPixels / tileSize }
+:calc toTopOfNextRoom { mapHeight - 32 }
 
-
-: calcDirection
- load v6 - v6
- ;
 
 : drawBG
+	plane 2
   i := playerCo
   load v1
 	i := map
@@ -41,7 +31,8 @@
 	again
 	i += v1
 	v2 := 32
-	v4 := tileSize
+	v9 := tileSize
+	v8 := toTopOfNextRoom
 	v0 := 0
 	v1 := 0
 	loop
@@ -49,49 +40,36 @@
 		if v1 == 32 begin
 			v0 += tileSize
 			v1 := 0
-			
-			i += v3
-			if v2 < 32 begin
-				i += v4
-				v2 += tileSize
-			end
+			i += v8
 			v2 := 32
 		else
 			sprite v0 v1 8
-			v1 += 8
-			i += tileSize
+			v1 += tileSize
+			i += v9
 		end
 		if v0 < 64 then again
 ;
 
-: drawBGTile
-	sprite v0 v1 8
+: drawPlayerSprite #need v0, v4 and v5 must be determined ahead of time
+	i := playerFrame
+	load v0
+	plane 2
+	i := player
+	i += v6
+	i += v0
+	sprite v4 v5 6
 ;
 
-: main
 
- plane 1
- i := thang
- v1 := 18
- v2 := 4
- sprite v1 v2 15
- plane 2
- sprite v1 v2 8
- v1 := 38
- sprite v1 v2 15
- plane 1
+: main
+	drawBG
 
  i := playerPos
  load v4 - v5
  plane 1
  i := player-col
  sprite v4 v5 6
- plane 2
- i := player
- v1 := 24
- i += v1
- sprite v4 v5 6
- v6 := 24
+ drawPlayerSprite
 
  loop
   v2 := v4
@@ -107,24 +85,22 @@
    v1 := 12 
    v2 += 1 
   end
-  v0 := OCTO_KEY_S  
-  if v0 key begin 
-   v1 := 24 
-   v3 += 1 
-  end
   v0 := OCTO_KEY_A  
   if v0 key begin 
    v1 := 36 
    v2 -= 1 
+  end
+  v0 := OCTO_KEY_S  
+  if v0 key begin 
+   v1 := 24 
+   v3 += 1 
   end
  
   
   if v1 != 4 begin
    plane 1
    i := player-col
-   vf := 0
    sprite v4 v5 6
-   vf := 0
    sprite v2 v3 6
    
    if vf != 0 begin #This space is not clear!
@@ -133,16 +109,18 @@
     
    else
   #get current frame and switch it
-
-  
-    plane 2
-    i := player
-    i += v6
-    sprite v4 v5 6
-
-    i := player
-    i += v1
-    sprite v2 v3 6 
+		
+  	drawPlayerSprite #Erase and redraw player 
+		v4 := v2
+		v5 := v3
+		v6 := v1
+		i := playerPos
+		save v4 - v5
+		if v0 == 0 begin v0 := 6
+		else v0 := 0 end
+		i := playerFrame
+		save v0
+		drawPlayerSprite
     
     v6 := v1
     v4 := v2
@@ -152,15 +130,146 @@
    
 #TO-DO - replace this delay with an input timer so that we can do stuff, without
 #worrying that the player going about on his merry way will slow the game down
-   vf := 3
+   vf := 5
    delay := vf
    loop
     vf := delay
     if vf != 0 then
    again
   end
+	
+	
+	#if at edge of screen
+	# start cycling to next screen
+	#TO-DO: optimize so that this code isn't repeated FOUR times.
+	if v5 == botSide begin
+		plane 1
+		clear
+		plane 2
+		i := player
+    i += v1
+		i += v0
+    sprite v4 v5 6
+		i := playerPos
+		save v4 - v5
+		v5 := 32
+		
+		loop
+			clear
+			i := playerCo
+			load v7 - v8
+			v8 += 4
+			save v7 - v8
+			drawBG
+			
+			v5 -= 4
+			vf := 6
+			delay := vf
+			loop
+				vf := delay
+				if vf != 0 then
+		 	again
+		
+		if v5 != 0 then again
+		
+		i := playerPos
+		load v4 - v5
+		v5 := 0
+		plane 1
+		i := player-col
+		sprite v4 v5 6
+		drawPlayerSprite
+		v6 := 24
+	end
+	
+	if v4 == rightSide begin
+	plane 1
+		clear
+		plane 2
+		i := player
+    i += v1
+		i += v0
+    sprite v4 v5 6
+		i := playerPos
+		save v4 - v5
+		v4 := 64
+		
+		loop
+			clear
+			i := playerCo
+			load v7 - v8
+			v7 += tileSize
+			save v7 - v8
+			drawBG
+			
+			v4 -= 8
+			vf := 6
+			delay := vf
+			loop
+				vf := delay
+				if vf != 0 then
+		 	again
+		
+		if v5 != 0 then again
+		
+		i := playerPos
+		load v4 - v5
+		v4 := 0
+		plane 1
+		i := player-col
+		sprite v4 v5 6
+		plane 2
+		i := player
+		v1 := 24
+		i += v1
+	  sprite v4 v5 6
+		v6 := 12
+	end
  again
 
+: scrollScreen
+	plane 1
+		clear
+		plane 2
+		i := player
+    i += v1
+		i += v0
+    sprite v4 v5 6
+		i := playerPos
+		save v4 - v5
+		v5 := 32
+		
+		loop
+			clear
+			i := playerCo
+			load v7 - v8
+			v8 += 4
+			save v7 - v8
+			drawBG
+			
+			v5 -= 4
+			vf := 6
+			delay := vf
+			loop
+				vf := delay
+				if vf != 0 then
+		 	again
+		
+		if v5 != 0 then again
+		
+		i := playerPos
+		load v4 - v5
+		v5 := 0
+		plane 1
+		i := player-col
+		sprite v4 v5 6
+		plane 2
+		i := player
+		v1 := 24
+		i += v1
+	  sprite v4 v5 6
+		v6 := 24
+;
 
 
 : player
