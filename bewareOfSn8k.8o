@@ -9,10 +9,10 @@
 : playerDir 0
 : playerFrame 0
 
-:const leftSide 0
-:const topSide 0
-:calc rightSide { 64 - 7 } #im too lazy to plug this into an actual calculator, sue me
-:calc botSide { 32 - 6 }
+:const leftSide 255
+:const topSide 255
+:calc rightSide { 64 - 6 } #im too lazy to plug this into an actual calculator, sue me
+:calc botSide { 32 - 5 }
 :const mapHeight 64
 :const mapWidthPixels 128
 :const tileSize 8
@@ -144,89 +144,95 @@
 	#if at edge of screen
 	# start cycling to next screen
 	#TO-DO: optimize so that this code isn't repeated FOUR times.
-	if v5 == botSide begin
-		plane 1
-		clear
-		plane 2
-		i := player
-    i += v1
-		i += v0
-    sprite v4 v5 6
-		i := playerPos
-		save v4 - v5
-		v5 := 32
-		
-		loop
-			clear
-			i := playerCo
-			load v7 - v8
-			v8 += 4
-			save v7 - v8
-			drawBG
-			
-			v5 -= 4
-			vf := 6
-			delay := vf
-			loop
-				vf := delay
-				if vf != 0 then
-		 	again
-		
-		if v5 != 0 then again
-		
-		i := playerPos
-		load v4 - v5
-		v5 := 0
-		plane 1
-		i := player-col
-		sprite v4 v5 6
-		drawPlayerSprite
-		v6 := 24
-	end
-	
-	if v4 == rightSide begin
-		plane 1
-		clear
-		plane 2
-		i := player
-    i += v1
-		i += v0
-    sprite v4 v5 6
-		i := playerPos
-		save v4 - v5
-		v4 := 64
-		
-		loop
-			clear
-			i := playerCo
-			load v7 - v8
-			v7 += tileSize
-			save v7 - v8
-			drawBG
-			
-			v4 -= 8
-			vf := 6
-			delay := vf
-			loop
-				vf := delay
-				if vf != 0 then
-		 	again
-		
-		if v4 != 0 then again
-		
-		i := playerPos
-		load v4 - v5
-		v4 := 0
-		plane 1
-		i := player-col
-		sprite v4 v5 6
-		plane 2
-		i := player
-		v1 := 24
-		i += v1
-	  sprite v4 v5 6
-		v6 := 12
-	end
+	if v5 == botSide then scrollScreen
+	if v5 == topSide then scrollScreen
+	if v4 == leftSide then scrollScreen
+	if v4 == rightSide then scrollScreen
+
+
+#	if v5 == botSide begin
+#		plane 1
+#		clear
+#		plane 2
+#		i := player
+#    i += v1
+#		i += v0
+ #   sprite v4 v5 6
+#		i := playerPos
+#		save v4 - v5
+#		v5 := 32
+#		
+#		loop
+#			clear
+#			i := playerCo
+#			load v7 - v8
+#			v8 += 4
+#			save v7 - v8
+#			drawBG
+#			
+#			v5 -= 4
+#			vf := 6
+#			delay := vf
+#			loop
+#				vf := delay
+#				if vf != 0 then
+#		 	again
+#		
+#		if v5 != 0 then again
+#		
+#		i := playerPos
+#		load v4 - v5
+#		v5 := 0
+#		plane 1
+#		i := player-col
+#		sprite v4 v5 6
+#		drawPlayerSprite
+#		v6 := 24
+#	end
+#	
+#	if v4 == rightSide begin
+#		plane 1
+#		clear
+#		plane 2
+#		i := player
+#    i += v1
+#		i += v0
+ #   sprite v4 v5 6
+#		i := playerPos
+#		save v4 - v5
+#		v4 := 64
+#		
+#		loop
+#			clear
+#			i := playerCo
+#			load v7 - v8
+#			v7 += tileSize
+#			save v7 - v8
+#			drawBG
+#			
+#			v4 -= 8
+#			vf := 6
+#			delay := vf
+#			loop
+#				vf := delay
+#				if vf != 0 then
+#		 	again
+#		
+#		if v4 != 0 then again
+#		
+#		i := playerPos
+#		load v4 - v5
+#		v4 := 0
+#		plane 1
+#		i := player-col
+#		sprite v4 v5 6
+#		plane 2
+#		i := player
+#		v1 := 24
+#		i += v1
+#	  sprite v4 v5 6
+#		v6 := 12
+#	end
  again
 
 : scrollScreen
@@ -238,39 +244,62 @@
 		i += v0
     sprite v4 v5 6
 		i := playerPos
+		va := 0
+		vb := 0
+		#Top
+		if v4 == 255 begin va := 64 v4 := rightSide v4 -= 1 end
+		#Bottom
+		if v4 == 58 begin va := 192 v4 := 0 end
+		#Left
+		if v5 == 255 begin vb := 32 v5 := botSide v5 -= 1 end
+		#Right
+		if v5 == 27 begin vb := 224 v5 := 0 end
+		#Set player's new position once screen has shifted to next room
 		save v4 - v5
-		v5 := 32
 		
 		loop
 			clear
 			i := playerCo
 			load v7 - v8
-			v8 += 4
+			
+			if vb != 0 begin
+				if vb > 100 begin
+					vb += 4
+					v8 += 4
+				else
+					vb -= 4
+					v8 -= 4
+				end
+			end
+			if va != 0 begin
+				if va > 100 begin
+					va += tileSize
+					v7 += tileSize
+				else
+					va -= tileSize
+					v7 -= tileSize
+				end
+			end
+			
 			save v7 - v8
 			drawBG
-			
-			v5 -= 4
 			vf := 6
 			delay := vf
 			loop
 				vf := delay
 				if vf != 0 then
 		 	again
-		
-		if v5 != 0 then again
+		vc := 0
+		if va != 0 then vc := 1
+		if vb != 0 then vc := 1
+		if vc != 0 then again
 		
 		i := playerPos
 		load v4 - v5
-		v5 := 0
 		plane 1
 		i := player-col
 		sprite v4 v5 6
-		plane 2
-		i := player
-		v1 := 24
-		i += v1
-	  sprite v4 v5 6
-		v6 := 24
+ 		drawPlayerSprite
 ;
 
 
