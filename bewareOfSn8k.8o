@@ -17,7 +17,53 @@
 : playerCo 0 0
 : playerPos 28 13
 : playerDir 0
+: playerCo 192 0
+: playerPos 47 15
+: playerDir 36
 : playerFrame 0
+: playerDelay 1 1 #The first number is the maximum number, which the second number counts up to.
+
+: sn8kCo 
+128 64 #Head
+
+128 64 #body parts, split in groups of 3 to make easier to read
+128 64
+128 64
+
+128 64
+128 64
+128 64
+
+128 64
+128 64
+128 64
+
+: sn8kPos 
+0 0 #Head
+
+0 0 #same deal as above
+0 0
+0 0
+
+0 0
+0 0
+0 0
+
+0 0
+0 0
+0 0
+
+: sn8kLength 10
+: sn8kDelay 0 0
+
+: 8ggs
+1 1 1 1
+1 1 1 1
+1 1 1 1
+1 1 1 1
+1 1 1 1
+: 8ggsCollected 0
+: total8ggs 20
 
 :const leftSide 255
 :const topSide 255
@@ -78,6 +124,24 @@
 ;
 
 
+: drawSn8k
+	i := sn8kLength
+	load v0
+	v1 := 0
+	
+	loop
+		i := playerCo
+		load v4 - v5
+		i := sn8kCo
+		load v6 - v7
+		if v4 == v6 begin if v5 == v7 begin
+
+			i := sn8kHead
+
+		end end
+	if v0 != v1 then again
+;
+
 : main
 	ve := 0
 	drawBG
@@ -87,76 +151,100 @@
  i := playerPos
  load v4 - v5
  plane 1
+ i := playerDir
+ load v6 - v6
  i := player-col
  sprite v4 v5 6
  drawPlayerSprite
 
  loop
-  v2 := v4
-  v3 := v5
-  v1 := 4
-  v0 := OCTO_KEY_W  
-  if v0 key begin 
-   v1 := 0 
-   v3 -= 1 
-  end
-  v0 := OCTO_KEY_D  
-  if v0 key begin 
-   v1 := 12 
-   v2 += 1 
-  end
-  v0 := OCTO_KEY_A  
-  if v0 key begin 
-   v1 := 36 
-   v2 -= 1 
-  end
-  v0 := OCTO_KEY_S  
-  if v0 key begin 
-   v1 := 24 
-   v3 += 1 
-  end
+ 	
+	#Undraw 8gg on screen if it has not yet been collected.
+	
+	
+	#Player can move if delay timer is up
+	
+	
+	#Sn8k can move if delay timer is up. If sn8k moving overlaps the player, GAME OVER!
+	
+	
+	#Redraw uncollected 8gg. If it overlaps the player, the 8gg is collected.
+	
+	# If all 8ggs have been collected, the player wins!
+	
+	i := playerDelay
+	load v1
+	if v0 == v1 begin
  
-  
-  if v1 != 4 begin
-   plane 1
-   i := player-col
-   sprite v4 v5 6
-   sprite v2 v3 6
+		v2 := v4
+		v3 := v5
+		v1 := 4
+		v0 := OCTO_KEY_W  
+		if v0 key begin 
+		 v1 := 0 
+		 v3 -= 1 
+		end
+		v0 := OCTO_KEY_D  
+		if v0 key begin 
+		 v1 := 12 
+		 v2 += 1 
+		end
+		v0 := OCTO_KEY_A  
+		if v0 key begin 
+		 v1 := 36 
+		 v2 -= 1 
+		end
+		v0 := OCTO_KEY_S  
+		if v0 key begin 
+		 v1 := 24 
+		 v3 += 1 
+		end
+
+
+		if v1 != 4 begin
+		 plane 1
+		 i := player-col
+		 sprite v4 v5 6
+		 sprite v2 v3 6
+
+		 if vf != 0 begin #This space is not clear!
+			sprite v4 v5 6
+			sprite v2 v3 6
+
+		 else
+		#get current frame and switch it
+
+			drawPlayerSprite #Erase and redraw player 
+			v4 := v2
+			v5 := v3
+			v6 := v1
+			i := playerPos
+			save v4 - v5
+			if v0 == 0 begin v0 := 6
+			else v0 := 0 end
+			i := playerFrame
+			save v0
+			drawPlayerSprite
+
+			v6 := v1
+			v4 := v2
+			v5 := v3
+			
+			#Reset playerDelay after moving
+			v0 := 1
+			i := playerDelay i += v0
+			v1 := 0
+			save v1 - v1
+
+		 end
+   	end
+	 else
+	 	i := playerDelay
+	  v1 += 1
+		save v1
+	end
+	 
    
-   if vf != 0 begin #This space is not clear!
-    sprite v4 v5 6
-    sprite v2 v3 6
-    
-   else
-  #get current frame and switch it
-		
-  	drawPlayerSprite #Erase and redraw player 
-		v4 := v2
-		v5 := v3
-		v6 := v1
-		i := playerPos
-		save v4 - v5
-		if v0 == 0 begin v0 := 6
-		else v0 := 0 end
-		i := playerFrame
-		save v0
-		drawPlayerSprite
-    
-    v6 := v1
-    v4 := v2
-    v5 := v3
-   
-   end
-   
-#TO-DO - replace this delay with an input timer so that we can do stuff, without
-#worrying that the player going about on his merry way will slow the game down
-   vf := 5
-   delay := vf
-   loop
-    vf := delay
-    if vf != 0 then
-   again
-  end
 	
 	
 	#if at edge of screen
@@ -166,6 +254,14 @@
 	if v5 == topSide then scrollScreen
 	if v4 == leftSide then scrollScreen
 	if v4 == rightSide then scrollScreen
+
+	vf := 3
+	delay := vf
+	loop
+		vf := delay
+		if vf != 0 then
+	again
+	
  again
 
 : scrollScreen
@@ -257,10 +353,16 @@
 : player-col
 0x38 0x7C 0xFE 0xFE 0xFE 0x7C
 
+: sn8kHead
+	0x00 0x3A 0x4E 0x46 0x7A 0x60 0x6A 0x4A 0x40 0x4C 0x5A 0x70 0x7E 0x3C 
+ 
+: sn8kBody
+	0x00 0x7E 0x66 0x18 0x66 0x18 0x66 0x00 0x7E 0x00 0x00 
+
 
 : map-art
-0x01 0x20 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x01 0x00 0x20 0x00 0x00 0x02 0x40
-0x00 0x00 0x00 0x00 0x01 0x01 0x03 0x03 0x47 0x07 0x0F 0x0F 0x0F 0x1F 0x9F 0x3F
+0x01 0x20 0x00 0x00 0x04 0x00 0x00 0x80 0x00 0x01 0x00 0x20 0x00 0x00 0x02 0x40
+0x00 0x00 0x00 0x00 0x11 0x01 0x03 0x03 0x47 0x07 0x0F 0x0F 0x0F 0x1F 0x9F 0x3F
 0x01 0x06 0x00 0x03 0x01 0x0C 0x03 0x05 0x01 0x00 0x05 0x03 0x0C 0x01 0x06 0x00
 0x03 0x08 0x07 0x02 0x0C 0x01 0x06 0x09 0x01 0x00 0x00 0x00 0x00 0x00 0x00 0x00
 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00
