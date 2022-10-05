@@ -155,6 +155,13 @@
 	if v0 != v1 then again
 ;
 
+: check8gg 
+	#Checks if the 8gg in this room has been collected, then draws it.
+	# If drawing on the collision layer would draw over the player (check their position in case it's the sn8k you're detecting),
+	# the 8gg is picked up.
+	
+;
+
 : draw8gg
 	v0 := 28
 	v1 := 12
@@ -316,7 +323,6 @@
 			clear
 			i := playerCo
 			load v7 - v8
-			
 			if vb != 0 begin
 				if vb > 100 begin
 					vb += 4
