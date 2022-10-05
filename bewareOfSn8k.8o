@@ -6,7 +6,7 @@
 : playerPos 47 15
 : playerDir 36
 : playerFrame 0
-: playerDelay 2 2 #The first number is the maximum number, which the second number counts up to.
+: playerDelay 3 3 #The first number is the maximum number, which the second number counts up to.
 
 : sn8kCo 
 128 64 #Head
@@ -39,7 +39,7 @@
 0 0
 
 : sn8kLength 10
-: sn8kDelay 0 0
+: sn8kDelay 19 0
 
 : 8ggs
 1 1 1 1
@@ -108,6 +108,20 @@
 	sprite v4 v5 6
 ;
 
+: moveSn8k
+	drawSn8k #Erase Sn8k, assuming it's on the screen
+	
+	# Move Sn8k head
+	i := sn8kPos
+	load v1
+	
+	v2 := random 4
+	
+	
+	# Sn8k body parts follow the part ahead of them.
+	
+	drawSn8k
+;
 
 : drawSn8k
 	i := sn8kLength
@@ -118,13 +132,38 @@
 		i := playerCo
 		load v4 - v5
 		i := sn8kCo
+		i += v1 i += v1
 		load v6 - v7
 		if v4 == v6 begin if v5 == v7 begin
-
-			i := sn8kHead
+			
+			i := sn8kPos			
+			i += v1 i += v1
+			load v6 - v7
+			if v1 == 0 then i := sn8kHead
+			if v1 != 0 then i := sn8kBody
+			
+			plane 1
+			sprite v6 v7 13
+			plane 2
+			if v7 != 56 then sprite v6 v7 13
+			if v7 == 56 then sprite v6 v7 7
+			
 
 		end end
+		
+		v1 += 1
 	if v0 != v1 then again
+;
+
+: draw8gg
+	v0 := 28
+	v1 := 12
+	plane 2
+	i := 8gg
+	sprite v0 v1 8
+	plane 1
+	i := 8ggCol
+	sprite v0 v1 8
 ;
 
 : main
@@ -141,22 +180,15 @@
  i := player-col
  sprite v4 v5 6
  drawPlayerSprite
+ 
+ draw8gg
 
  loop
  	
 	#Undraw 8gg on screen if it has not yet been collected.
-	
+	draw8gg
 	
 	#Player can move if delay timer is up
-	
-	
-	#Sn8k can move if delay timer is up. If sn8k moving overlaps the player, GAME OVER!
-	
-	
-	#Redraw uncollected 8gg. If it overlaps the player, the 8gg is collected.
-	
-	# If all 8ggs have been collected, the player wins!
-	
 	i := playerDelay
 	load v1
 	if v0 == v1 begin
@@ -164,6 +196,9 @@
 		v2 := v4
 		v3 := v5
 		v1 := 4
+		
+		# I don't remember why v1 needed to be either 4 or a multiple of 12 in this case, it just is.
+		
 		v0 := OCTO_KEY_W  
 		if v0 key begin 
 		 v1 := 0 
@@ -230,13 +265,21 @@
 	end
 	
 	
-	#if at edge of screen
-	# start cycling to next screen
-	#TO-DO: optimize so that this code isn't repeated FOUR times.
+	#if player is at edge of screen, start cycling to next screen
 	if v5 == botSide then scrollScreen
 	if v5 == topSide then scrollScreen
 	if v4 == leftSide then scrollScreen
 	if v4 == rightSide then scrollScreen
+	
+	#Sn8k can move if delay timer is up. If sn8k moving overlaps the player, GAME OVER!
+	
+	
+	#Redraw uncollected 8gg. If it overlaps the player, the 8gg is collected.
+	draw8gg
+	
+	# If all 8ggs have been collected, the player wins!
+	
+	
 	
 	vf := 2
 	delay := vf
@@ -340,7 +383,7 @@
 0x00 0x3A 0x4E 0x46 0x7A 0x60 0x6A 0x4A 0x40 0x4C 0x5A 0x70 0x7E 0x3C 
  
 : sn8kBody
-0x00 0x7E 0x66 0x18 0x66 0x18 0x66 0x00 0x7E 0x00 0x00 
+0x00 0x7E 0x66 0x18 0x66 0x18 0x66 0x00 0x7E 0x00 0x00 0x00 0x00 0x00
 
 : 8gg
 0x18 0x3C 0x7E 0x7E 0xFF 0xBF 0x4E 0x3C
