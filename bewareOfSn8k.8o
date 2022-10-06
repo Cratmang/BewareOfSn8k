@@ -6,7 +6,7 @@
 : playerPos 47 15
 : playerDir 36
 : playerFrame 0
-: playerDelay 0 0 #The first number is the maximum number, which the second number counts up to.
+: playerDelay 3 3 #The first number is the maximum number, which the second number counts up to.
 
 : sn8kCo 
 128 64 #Head
@@ -47,7 +47,7 @@
 1 1 1 1
 1 1 1 1
 1 1 1 1
-: 8ggsCollected 18
+: 8ggsCollected 0
 : total8ggs 20
 
 :const leftSide 255
