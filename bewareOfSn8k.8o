@@ -6,7 +6,7 @@
 : playerPos 47 15
 : playerDir 36
 : playerFrame 0
-: playerDelay 3 3 #The first number is the maximum number, which the second number counts up to.
+: playerDelay 0 0 #The first number is the maximum number, which the second number counts up to.
 
 : sn8kCo 
 128 64 #Head
@@ -47,7 +47,7 @@
 1 1 1 1
 1 1 1 1
 1 1 1 1
-: 8ggsCollected 0
+: 8ggsCollected 18
 : total8ggs 20
 
 :const leftSide 255
@@ -159,6 +159,48 @@
 	#Checks if the 8gg in this room has been collected, then draws it.
 	# If drawing on the collision layer would draw over the player (check their position in case it's the sn8k you're detecting),
 	# the 8gg is picked up.
+	:macro get8gg {
+		i := playerCo
+		load v1
+
+		v7 := 0
+		loop while v0 != 0
+			v0 -= 64
+			v7 += 1
+		again
+		v8 := 0
+		loop while v1 != 0
+			v1 -= 32
+			v8 += 1
+		again
+		v8 += v8 #2
+		v8 += v8 #4
+
+		i := 8ggs
+		i += v8
+		i += v7
+	}
+	
+	get8gg
+	load v0
+
+	
+	if v0 == 1 begin
+		draw8gg
+		
+		if v2 == 1 begin #We are looking for the player collision now!
+			if vf != 0 begin
+				v0 := 0
+				get8gg
+				save v0
+				draw8gg
+				i := 8ggsCollected
+				load v0
+				v0 += 1
+				save v0
+			end
+		end
+	end
 	
 ;
 
@@ -193,7 +235,8 @@
  loop
  	
 	#Undraw 8gg on screen if it has not yet been collected.
-	draw8gg
+	v2 := 0
+	check8gg
 	
 	#Player can move if delay timer is up
 	i := playerDelay
@@ -282,7 +325,8 @@
 	
 	
 	#Redraw uncollected 8gg. If it overlaps the player, the 8gg is collected.
-	draw8gg
+	v2 := 1
+	check8gg
 	
 	# If all 8ggs have been collected, the player wins!
 	
@@ -295,7 +339,58 @@
 		if vf != 0 then
 	again
 	
- again
+	i := 8ggsCollected
+	load v1 #If I'm correct, this should load 8ggsCollected to v0 and total 8ggs to v1
+	if v0 != v1 then again
+
+	i := Victory!
+	plane 1
+	clear
+	plane 2
+	clear
+	v0 := 8
+	v1 := 14
+	v2 := 9
+	sprite v0 v1 9
+	plane 1
+	sprite v0 v1 9
+	v0 += 9
+	i += v2
+	sprite v0 v1 9
+	plane 2
+	sprite v0 v1 9
+	v0 += 9
+	sprite v0 v1 9
+	plane 1
+	sprite v0 v1 9
+	v0 += 9
+	i += v2
+	sprite v0 v1 9
+	plane 2
+	sprite v0 v1 9
+	
+	
+	plane 1
+	loop
+	i := Victory!
+	v0 := 8
+	v1 := 14
+	sprite v0 v1 9
+	v0 += 9
+	i += v2
+	sprite v0 v1 9
+	v0 += 9
+	sprite v0 v1 9
+	v0 += 9
+	i += v2
+	sprite v0 v1 9
+	vf := 20
+	delay := vf
+	loop
+		vf := delay
+		if vf != 0 then
+	again
+	again
 
 : scrollScreen
 		plane 1
@@ -396,6 +491,11 @@
 
 : 8ggCol
 0x18 0x3C 0x5E 0x4E 0x87 0x85 0x42 0x3C
+
+: Victory!
+0x38 0x6E 0xC6 0xFC 0x3E 0x63 0x71 0x33 0x1E #8
+0x3E 0x77 0xC3 0xC0 0xCC 0xC6 0xE3 0x73 0x3E #G
+0x38 0x38 0x18 0x18 0x18 0x08 0x00 0x0C 0x0C #!
 
 : map-art
 0x01 0x20 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x01 0x00 0x20 0x00 0x00 0x02 0x40
