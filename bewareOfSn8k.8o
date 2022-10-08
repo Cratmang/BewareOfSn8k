@@ -9,9 +9,17 @@
 : playerDelay 3 3 #The first number is the maximum number, which the second number counts up to.
 
 : sn8kCo 
-128 64 #Head
+128 64 #128 64 #Head
 
-128 64 #body parts, split in groups of 3 to make easier to read
+128 64  #body parts, split in groups of 3 to make easier to read
+128 64
+128 64
+
+128 64
+128 64
+128 64
+
+128 64
 128 64
 128 64
 
@@ -24,22 +32,30 @@
 128 64
 
 : sn8kPos 
-0 0 #Head
+16 16 #Head
 
-0 0 #same deal as above
-0 0
-0 0
+16 16 #same deal as above
+16 16
+16 16
 
-0 0
-0 0
-0 0
+16 16
+16 16
+16 16
 
-0 0
-0 0
-0 0
+16 16
+16 16
+16 16
 
-:const sn8kLength 10
-: sn8kDelay 19 0
+16 16
+16 16
+16 16
+
+16 16
+16 16
+16 16
+
+:const sn8kLength 16
+: sn8kDelay 100 90
 
 : 8ggs
 1 1 1 1
@@ -113,65 +129,73 @@
 	
 	va := sn8kLength
 	loop 
-		# Move Sn8k head
-		:macro findSn8kPart {		
-			i += va 
-			i += va
+		:macro findSn8kPart DIS {		
+			i += DIS 
+			i += DIS
 		}
 		
+		va -= 1
 		i := sn8kPos
-		findSn8kPart
+		findSn8kPart va
 		load v1
 
 		if va == 0 begin #sn8k head!
-			v2 := random 4
+			v2 := random 3
 			if v2 == 0 then v1 -= 8 #North
 			if v2 == 1 then v0 += 8 #East
 			if v2 == 2 then v1 += 8 #South
 			if v2 == 3 then v0 -= 8 #West
+			
+			i := sn8kCo
+			findSn8kPart va
+			load vb - vc
+			if v0 == 248 begin #Off the left side of the screen
+				v0 := 56
+				vb -= 64
+			end
+			if v0 == 64 begin #Off the right side of the screen
+				v0 := 0
+				vb += 64
+			end
+			if v1 == 248 begin #Off the top side of the screen
+				v0 := 24
+				vc -= 32
+			end
+			if v0 == 32 begin #You get the picture
+				v0 := 0
+				vb += 32
+			end
+			save vb - vc
+		
+			i := sn8kPos
+			findSn8kPart va	
+			save v1
+			
 		else #Sn8k body! - Simply load the position of the sn8k part ahead of it.
 			v2 := 2
-			va -= v2
+			vd := va
+			vd -= 1
 			i := sn8kPos
-			findSn8kPart
-			va += v2
+			findSn8kPart vd
 			load v1 
 			i += v2
 			save v1
+			i := sn8kCo
+			findSn8kPart vd
+			load v1
+			i += v2
+			save v1
 		end
-		
-		i := sn8kCo
-		findSn8kPart
-		load vb - vc
-		if v0 == 248 begin #Off the left side of the screen
-			v0 := 56
-			vb -= 64
-		end
-		if v0 == 64 begin #Off the right side of the screen
-			v0 := 0
-			vb += 64
-		end
-		if v1 == 248 begin #Off the top side of the screen
-			v0 := 24
-			vc -= 32
-		end
-		if v0 == 32 begin #You get the picture
-			v0 := 0
-			vb += 32
-		end
-		save vb - vc
-		
-		i := sn8kPos
-		findSn8kPart	
-		save v1
-		
-		va -= 1
 		
 	if va != 0 then again
 	
 	# Sn8k body parts follow the part ahead of them.
 	
 	drawSn8k
+	
+	i := sn8kDelay
+	load v1
+	v1 := 0
 ;
 
 : drawSn8k
@@ -271,14 +295,7 @@
 	ve := 1
 	drawBG
 
- i := playerPos
- load v4 - v5
- plane 1
- i := playerDir
- load v6 - v6
- i := player-col
- sprite v4 v5 6
- drawPlayerSprite
+ redrawActors
  
  draw8gg
 
@@ -374,17 +391,18 @@
 	if v4 == leftSide then scrollScreen
 	if v4 == rightSide then scrollScreen
 	
-	#Sn8k can move if delay timer is up. If sn8k moving overlaps the player, GAME OVER!
-	moveSn8k
-	
 	#Redraw uncollected 8gg. If it overlaps the player, the 8gg is collected.
 	v2 := 1
 	check8gg
 	
+	#Sn8k can move if delay timer is up. If sn8k moving overlaps the player, GAME OVER!
+	i := sn8kDelay
+	load v1
+	if v0 == v1 then moveSn8k
+	if v0 != v1 then v1 += 1
+	save v1
+	
 	# If all 8ggs have been collected, the player wins!
-	
-	
-	
 	vf := 2
 	delay := vf
 	loop
@@ -507,12 +525,20 @@
 		ve := 1
 		drawBG
 		
-		i := playerPos
-		load v4 - v5
-		plane 1
-		i := player-col
-		sprite v4 v5 6
- 		drawPlayerSprite
+		redrawActors
+;
+
+: redrawActors
+	i := playerPos
+	load v4 - v5
+	plane 1
+	i := playerDir
+	load v6 - v6
+	i := player-col
+	sprite v4 v5 6
+	drawPlayerSprite
+		
+	drawSn8k
 ;
 
 
