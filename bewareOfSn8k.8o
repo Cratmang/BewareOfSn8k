@@ -38,7 +38,7 @@
 0 0
 0 0
 
-: sn8kLength 10
+:const sn8kLength 10
 : sn8kDelay 19 0
 
 : 8ggs
@@ -111,12 +111,63 @@
 : moveSn8k
 	drawSn8k #Erase Sn8k, assuming it's on the screen
 	
-	# Move Sn8k head
-	i := sn8kPos
-	load v1
-	
-	v2 := random 4
-	
+	va := sn8kLength
+	loop 
+		# Move Sn8k head
+		:macro findSn8kPart {		
+			i += va 
+			i += va
+		}
+		
+		i := sn8kPos
+		findSn8kPart
+		load v1
+
+		if va == 0 begin #sn8k head!
+			v2 := random 4
+			if v2 == 0 then v1 -= 8 #North
+			if v2 == 1 then v0 += 8 #East
+			if v2 == 2 then v1 += 8 #South
+			if v2 == 3 then v0 -= 8 #West
+		else #Sn8k body! - Simply load the position of the sn8k part ahead of it.
+			v2 := 2
+			va -= v2
+			i := sn8kPos
+			findSn8kPart
+			va += v2
+			load v1 
+			i += v2
+			save v1
+		end
+		
+		i := sn8kCo
+		findSn8kPart
+		load vb - vc
+		if v0 == 248 begin #Off the left side of the screen
+			v0 := 56
+			vb -= 64
+		end
+		if v0 == 64 begin #Off the right side of the screen
+			v0 := 0
+			vb += 64
+		end
+		if v1 == 248 begin #Off the top side of the screen
+			v0 := 24
+			vc -= 32
+		end
+		if v0 == 32 begin #You get the picture
+			v0 := 0
+			vb += 32
+		end
+		save vb - vc
+		
+		i := sn8kPos
+		findSn8kPart	
+		save v1
+		
+		va -= 1
+		
+	if va != 0 then again
 	
 	# Sn8k body parts follow the part ahead of them.
 	
@@ -124,8 +175,7 @@
 ;
 
 : drawSn8k
-	i := sn8kLength
-	load v0
+	v0 := sn8kLength
 	v1 := 0
 	
 	loop
@@ -243,6 +293,8 @@
 	load v1
 	if v0 == v1 begin
  
+ 		i := playerPos
+		load v4 - v5
 		v2 := v4
 		v3 := v5
 		v1 := 4
@@ -283,22 +335,23 @@
 
 		 else
 		#get current frame and switch it
-
+			
+			i := playerDir
+			load v6 - v6
 			drawPlayerSprite #Erase and redraw player 
 			v4 := v2
 			v5 := v3
 			v6 := v1
 			i := playerPos
 			save v4 - v5
+			i := playerDir
+			save v6 - v6
 			if v0 == 0 begin v0 := 6
 			else v0 := 0 end
 			i := playerFrame
 			save v0
 			drawPlayerSprite
-
-			v6 := v1
-			v4 := v2
-			v5 := v3
+			
 			
 			#Reset playerDelay after moving
 			v0 := 1
@@ -322,7 +375,7 @@
 	if v4 == rightSide then scrollScreen
 	
 	#Sn8k can move if delay timer is up. If sn8k moving overlaps the player, GAME OVER!
-	
+	moveSn8k
 	
 	#Redraw uncollected 8gg. If it overlaps the player, the 8gg is collected.
 	v2 := 1
